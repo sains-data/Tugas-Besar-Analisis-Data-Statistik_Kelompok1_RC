@@ -1,0 +1,97 @@
+---
+title: "Tubes ADS"
+author: "KELOMPOK 1"
+date: "2025-11-19"
+output: html_document
+---
+
+# Mengimport database
+
+```{r}
+data_ads <- read_excel("D:/ADS/nilaiADS.xlsx")
+data_ads
+```
+
+**Library yang digunakan**
+
+```{r}
+library(readxl)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+summary(data_ads)
+```
+
+Mengecek tipe data
+
+```{r}
+str(data_ads)
+```
+
+# Mengubah data menjadi data long
+
+```{r}
+data_long <- data_ads %>%
+  pivot_longer(
+    cols = c("RA", "RB", "RC"),
+    names_to = "Kelas",
+    values_to = "Nilai"
+  )
+
+head(data_long)
+```
+
+# Histogram
+
+```{r}
+ggplot(data_long, aes(x = Nilai, fill = Kelas)) +
+  geom_histogram(alpha = 0.6, bins = 10, position = "identity") +
+  labs(title = "Histogram Nilai ADS per Kelas",
+       x = "Nilai", y = "Frekuensi") +
+  theme_minimal()
+```
+
+# Density plot
+
+```{r}
+ggplot(data_long, aes(x = Nilai, color = Kelas)) +
+  geom_density(size = 1.2) +
+  labs(title = "Density Plot Nilai ADS per Kelas") +
+  theme_minimal()
+```
+
+# Boxplot
+
+```{r}
+ggplot(data_long, aes(x = Kelas, y = Nilai, fill = Kelas)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "Boxplot Perbandingan Nilai RA, RB, RC") +
+  theme_minimal()
+```
+
+# Deteksi outlier
+
+```{r}
+outliers <- data_long %>%
+  group_by(Kelas) %>%
+  mutate(
+    Q1 = quantile(Nilai, 0.25),
+    Q3 = quantile(Nilai, 0.75),
+    IQR = Q3 - Q1,
+    lower = Q1 - 1.5 * IQR,
+    upper = Q3 + 1.5 * IQR,
+    Outlier = (Nilai < lower | Nilai > upper)
+  ) %>%
+  filter(Outlier == TRUE)
+
+print(outliers)
+```
+
+```{r}
+ggplot(data_long, aes(x = Kelas, y = Nilai, color = Kelas)) +
+  geom_jitter(width = 0.2, alpha = 0.7) +
+  labs(title = "Sebaran Nilai Mahasiswa per Kelas") +
+  theme_minimal()
+```
